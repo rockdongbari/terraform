@@ -1,15 +1,17 @@
-resource "random_pet" "rg_name" {
+/*resource "random_pet" "rg_name" {
   prefix = var.resource_group_name_prefix
-}
+}*/
 
 resource "azurerm_resource_group" "rg" {
   location = var.resource_group_location
-  name     = random_pet.rg_name.id
+  #name     = random_pet.rg_name.id
+  name     = "${var.default_prefix}-rg"
 }
 
 # Create virtual network
 resource "azurerm_virtual_network" "my_terraform_network" {
-  name                = "myVnet"
+  #name                = "myVnet"
+  name                = "${var.default_prefix}-vnet"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -17,7 +19,7 @@ resource "azurerm_virtual_network" "my_terraform_network" {
 
 # Create subnet
 resource "azurerm_subnet" "my_terraform_subnet" {
-  name                 = "mySubnet"
+  name                 = "subnet01"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.my_terraform_network.name
   address_prefixes     = ["10.0.0.0/24"]
@@ -25,7 +27,8 @@ resource "azurerm_subnet" "my_terraform_subnet" {
 
 # Create public IPs
 resource "azurerm_public_ip" "my_terraform_public_ip" {
-  name                = "myPublicIP"
+  #name                = "myPublicIP"
+  name                = "${var.default_prefix}-pip"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
@@ -33,7 +36,8 @@ resource "azurerm_public_ip" "my_terraform_public_ip" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "my_terraform_nsg" {
-  name                = "myNetworkSecurityGroup"
+  #name                = "myNetworkSecurityGroup"
+  name                = "${var.default_prefix}-nsg"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -52,12 +56,14 @@ resource "azurerm_network_security_group" "my_terraform_nsg" {
 
 # Create network interface
 resource "azurerm_network_interface" "my_terraform_nic" {
-  name                = "myNIC"
+  #name                = "myNIC"
+  name                = "${var.default_prefix}-nic"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "my_nic_configuration"
+    #name                          = "my_nic_configuration"
+    name                          = "${var.default_prefix}-nicconf"
     subnet_id                     = azurerm_subnet.my_terraform_subnet.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.my_terraform_public_ip.id
@@ -91,16 +97,18 @@ resource "azurerm_storage_account" "my_storage_account" {
 
 # Create virtual machine
 resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
-  name                  = "myVM"
+  #name                  = "myVM"
+  name                  = "${var.default_prefix}-VM01"
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.my_terraform_nic.id]
-  size                  = "Standard_DS1_v2"
+  #size                  = "Standard_DS1_v2"
+  size                  = "Standard_B2ms"
 
   os_disk {
-    name                 = "myOsDisk"
+    name                 = "${azurerm_linux_virtual_machine.my_terraform_vm.name}-OsDisk"
     caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
+    storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
@@ -116,7 +124,7 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
 
   admin_ssh_key {
     username   = var.username
-    public_key = jsondecode(azapi_resource_action.ssh_public_key_gen.output).publicKey
+    public_key = file("~/dj.pub")
   }
 
   boot_diagnostics {

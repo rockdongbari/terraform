@@ -15,3 +15,9 @@ variable "username" {
   description = "The username for the local account that will be created on the new VM."
   default     = "terra"
 }
+
+variable "default_prefix" {
+  type        = string
+  description = "Infra resource default name prefix "
+  default     = "terra"
+}
