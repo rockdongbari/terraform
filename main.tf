@@ -106,7 +106,8 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   size                  = "Standard_B2ms"
 
   os_disk {
-    name                 = "${azurerm_linux_virtual_machine.my_terraform_vm.name}-OsDisk"
+    vm-prmfix            =  azurerm_linux_virtual_machine.my_terraform_vm.name
+    name                 = "${vm-prefix}-OsDisk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
